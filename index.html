@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interstitial Journal</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <nav class="app-nav">
+    <button id="nav-capture" class="nav-button active" type="button">Capture</button>
+    <button id="nav-review" class="nav-button" type="button">Review</button>
+  </nav>
+
+  <main id="capture-view">
+    <textarea id="capture-input" placeholder="What's on your mind?"></textarea>
+    <button id="mic-button" type="button" aria-label="Dictate entry">🎤</button>
+  </main>
+
+  <main id="review-view" hidden>
+    <div class="review-controls">
+      <input id="search-input" type="search" placeholder="Search entries..." />
+      <select id="range-select">
+        <option value="7d">Last 7 days</option>
+        <option value="30d">Last 30 days</option>
+        <option value="all" selected>All time</option>
+      </select>
+    </div>
+    <div id="entry-list"></div>
+  </main>
+
+  <div id="persistence-warning" class="toast" hidden>
+    Your entries won't be saved after this session.
+  </div>
+
+  <div id="update-toast" class="toast" hidden>
+    Update ready. <button id="update-button" type="button">Refresh</button>
+  </div>
+
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+:root {
+  color-scheme: light dark;
+  --gap: 0.75rem;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app-nav {
+  display: flex;
+  border-bottom: 1px solid #ccc;
+}
+
+.nav-button {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  background: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.nav-button.active {
+  font-weight: bold;
+  border-bottom: 2px solid currentColor;
+}
+
+#capture-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--gap);
+  gap: var(--gap);
+}
+
+#capture-input {
+  flex: 1;
+  width: 100%;
+  font-size: 1.1rem;
+  padding: var(--gap);
+  border: none;
+  resize: none;
+}
+
+#capture-input:focus {
+  outline: none;
+}
+
+#mic-button {
+  align-self: flex-end;
+  font-size: 1.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+#review-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--gap);
+  gap: var(--gap);
+  overflow: hidden;
+}
+
+.review-controls {
+  display: flex;
+  gap: var(--gap);
+}
+
+#search-input {
+  flex: 1;
+  padding: 0.5rem;
+}
+
+#entry-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+#entry-list h3 {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.entry {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.entry-time {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  display: block;
+}
+
+.entry-text {
+  margin: 0.2rem 0 0;
+  white-space: pre-wrap;
+}
+
+.empty-state {
+  opacity: 0.6;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.toast {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2b2b2b;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+#persistence-warning {
+  bottom: auto;
+  top: 1rem;
+  background: #7a3b00;
+}
+
+.toast button {
+  background: white;
+  border: none;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.3rem;
+  cursor: pointer;
+}

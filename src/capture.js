@@ -48,6 +48,7 @@ export function initCaptureView(store, root) {
       textarea.value = textarea.value ? `${textarea.value} ${transcript}` : transcript;
       textarea.focus();
     };
+    micButton.addEventListener('mousedown', (event) => event.preventDefault());
     micButton.addEventListener('click', () => recognition.start());
   } else if (micButton) {
     micButton.remove();

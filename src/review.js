@@ -1,13 +1,15 @@
 import { searchEntries, filterByDateRange } from './filters.js';
 import { groupByDay } from './grouping.js';
 
-function renderGroups(listEl, groups) {
+function renderGroups(listEl, groups, hasAnyEntries) {
   listEl.innerHTML = '';
 
   if (groups.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'empty-state';
-    empty.textContent = 'No entries yet.';
+    empty.textContent = hasAnyEntries
+      ? 'No entries match your search.'
+      : 'No entries yet.';
     listEl.appendChild(empty);
     return;
   }
@@ -48,7 +50,7 @@ export async function initReviewView(store, root) {
   function applyFilters() {
     const byRange = filterByDateRange(allEntries, rangeSelect.value);
     const bySearch = searchEntries(byRange, searchInput.value);
-    renderGroups(listEl, groupByDay(bySearch));
+    renderGroups(listEl, groupByDay(bySearch), allEntries.length > 0);
   }
 
   async function refresh() {

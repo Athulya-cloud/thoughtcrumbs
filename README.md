@@ -25,5 +25,6 @@ bar install icon; Safari: Share → Add to Home Screen).
   banner warning that entries won't persist.
 - Voice input uses the browser's built-in Speech Recognition API. It is
   unavailable in Firefox; the mic button simply won't appear there.
-- The app works offline once loaded once (service worker caches the app
-  shell).
+- The app works offline starting from your second visit (or after a
+  reload) — the service worker needs one full page load to install before
+  it can take over.

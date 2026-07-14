@@ -41,6 +41,37 @@ app instead of just bookmarking it:
 Once installed, it opens in its own window/icon, without browser chrome,
 and works offline (see Notes below).
 
+## How to use the app
+
+The app has two tabs at the top: **Capture** and **Review**.
+
+### Capture — jotting down a thought
+
+1. Open the app. You'll land on the Capture tab, with a text box already
+   focused and ready to type into.
+2. Type whatever's on your mind — no need to hit a "save" button.
+3. Your entry is saved automatically as soon as you click away from the
+   box (or switch to the Review tab). You can also save it immediately and
+   start a fresh entry by pressing **Cmd+Enter** (Mac) or **Ctrl+Enter**
+   (Windows/Linux) while typing.
+4. If you'd rather speak than type, tap the microphone button (🎤) next to
+   the text box and say your thought out loud — it'll be typed in for you.
+   (The mic button won't appear in Firefox, since that browser doesn't
+   support this yet.)
+
+An empty text box is never saved as an entry, so there's no need to worry
+about accidentally creating blank notes.
+
+### Review — reading back your entries
+
+1. Tap the **Review** tab to see everything you've captured, grouped by
+   day with the most recent at the top.
+2. Use the search box to find entries containing specific words.
+3. Use the dropdown next to it to narrow the list to the last 7 days, the
+   last 30 days, or all time.
+4. If nothing matches your search or the app is empty, you'll see a short
+   message instead of a blank screen — that's expected, not an error.
+
 ## Stop the server
 
 `npm run serve` runs in the foreground — press `Ctrl+C` in that terminal

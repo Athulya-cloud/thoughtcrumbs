@@ -5,27 +5,75 @@ quick thoughts at task-transition moments with near-zero friction.
 
 ## Requirements
 
-- [Node.js](https://nodejs.org/) 18 or later (includes `npm`). Check with
-  `node -v` — if that fails, install Node first.
+- [Node.js](https://nodejs.org/) 18 or later (includes `npm`). This is what
+  lets your computer run the app's local server.
 - A modern browser (Chrome, Edge, or Safari recommended; voice input isn't
   available in Firefox — see Notes below).
 
-## Get the code
+## Step 1: Install Node.js (one-time setup)
 
-Clone this repository, then move into it:
+If you're not sure whether you already have it, open a terminal (see
+below for how) and type:
+
+    node -v
+
+- If you see something like `v18.x.x` or higher, you're set — skip to
+  Step 2.
+- If you see "command not found" or similar, go to
+  [nodejs.org](https://nodejs.org/), download the **LTS** version for
+  your operating system, and run the installer (click Next/Continue
+  through the defaults). Then close and reopen your terminal and try
+  `node -v` again to confirm it worked.
+
+### Opening a terminal
+
+- **Mac:** press `Cmd+Space`, type `Terminal`, press Enter.
+- **Windows:** press the Windows key, type `PowerShell` (or
+  `Command Prompt`), press Enter.
+
+## Step 2: Get the code
+
+The easiest way if you don't use `git` day-to-day:
+
+1. Go to the repository page:
+   https://github.com/Athulya-cloud/thoughtcrumbs
+2. Click the green **Code** button → **Download ZIP**.
+3. Find the downloaded ZIP file (usually in your Downloads folder) and
+   unzip it (double-click it on Mac; right-click → "Extract All" on
+   Windows). This gives you a `thoughtcrumbs` folder.
+
+If you're comfortable with `git`, you can instead run:
 
     git clone https://github.com/Athulya-cloud/thoughtcrumbs.git
     cd thoughtcrumbs
 
-## Run it
+## Step 3: Start the local server
 
-Install dependencies once, then start the local server:
+In your terminal, move into the folder you just downloaded/cloned. For
+example, if you unzipped it into Downloads:
+
+    cd Downloads/thoughtcrumbs
+
+(Tip: instead of typing the path, you can type `cd ` — with a trailing
+space — then drag the `thoughtcrumbs` folder from Finder/File Explorer
+into the terminal window, and press Enter.)
+
+Then install dependencies once, and start the server:
 
     npm install
     npm run serve
 
-This prints a local URL (e.g. `http://localhost:3000`) — open it in your
-browser. That's the whole app; there's no separate build step.
+The first command downloads a few small helper files the app needs (only
+required the first time, or after you download a fresh copy). The second
+command starts the app and prints a local URL such as:
+
+    http://localhost:3000
+
+Open that URL in your browser — that's the app running. There's no
+separate build step and nothing else to configure.
+
+Keep that terminal window open while you're using the app in the
+browser; closing it stops the server (see "Stop the server" below).
 
 ## Install it as an app on your device
 

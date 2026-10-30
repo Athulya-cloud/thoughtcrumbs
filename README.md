@@ -1,16 +1,19 @@
-# Thoughtcrumbs
+<h1 align="center">Thoughtcrumbs</h1>
+<p align="center"><b>Catch your thoughts before they vanish.</b></p>
 
-A tiny journal for the moments between tasks. Jot down a quick thought in seconds, read it back later. Everything stays on your device.
+<p align="center"><img src="assets/architecture.png" alt="How Thoughtcrumbs works" width="720"></p>
 
-![architecture](assets/architecture.png)
+Between one task and the next, your brain is full of half-formed ideas, worries and "oh, I should…" moments. Thoughtcrumbs gives them somewhere to land in about two seconds, then lets you read them back by day.
 
-## What it does
+No account. No cloud. Nothing leaves your device.
 
-- **Capture fast:** a text box is ready the moment you open the app. Type, or tap the mic and speak
-- **Saves itself:** click away, or press `Cmd+Enter` / `Ctrl+Enter` to save and start a new entry
-- **Review:** entries grouped by day, newest first, with search and a 7 days / 30 days / all time filter
-- **Private:** no account, no server. Data lives in your browser (IndexedDB)
-- **Installable and offline:** add it to your desktop or phone home screen and it works without internet
+## Why you'll like it
+
+- **Zero friction:** the text box is ready the moment you open the app. Type, or tap the mic and speak
+- **Saves itself:** click away, or press `Cmd+Enter` / `Ctrl+Enter` to save and start fresh
+- **Easy to look back:** entries grouped by day, with search and a 7 days / 30 days / all time filter
+- **Truly private:** your entries live in your browser and nowhere else
+- **Works like a real app:** install it on your desktop or phone, and it keeps working offline
 
 ## Run it
 

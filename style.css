@@ -241,8 +241,6 @@ body {
 
 .jot-row { display: flex; align-items: flex-start; gap: 0.5rem; margin: 0.25rem 0 1rem; }
 .jot-row .jot-input { margin-top: 0; flex: 1; }
-.mic-button { border: none; background: none; font-size: 1.5rem; padding: 0.35rem; cursor: pointer; }
-.mic-button.listening { opacity: 0.5; }
 
 .last-note { margin: 0 0.25rem 0.5rem; font-size: 0.85rem; opacity: 0.55; }
 .day-heading { margin: 1.25rem 0.25rem 0.25rem; font-size: 0.8rem; text-transform: uppercase; opacity: 0.55; }

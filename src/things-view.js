@@ -4,7 +4,6 @@ import {
 } from './things.js';
 import { buildEntry } from './capture.js';
 import { groupByDay } from './grouping.js';
-import { attachMic } from './voice.js';
 
 const INBOX = 'inbox';
 const ARCHIVE = 'archive';
@@ -43,15 +42,12 @@ export async function initThingsView(store, root) {
     return node;
   }
 
-  // A text box where Enter saves, with a mic button beside it.
+  // A text box where Enter saves.
   function jotBox(placeholder, onSave) {
     const row = el('div', 'jot-row');
     const textarea = el('textarea', 'jot-input');
     textarea.rows = 1;
     textarea.placeholder = placeholder;
-    const mic = el('button', 'mic-button', '🎤');
-    mic.type = 'button';
-    mic.setAttribute('aria-label', 'Dictate');
     textarea.addEventListener('keydown', async (event) => {
       if (event.key !== 'Enter' || event.shiftKey) return;
       event.preventDefault();
@@ -59,8 +55,7 @@ export async function initThingsView(store, root) {
       textarea.value = '';
       if (text.trim()) await onSave(text);
     });
-    row.append(textarea, mic);
-    attachMic(mic, textarea);
+    row.appendChild(textarea);
     return { row, textarea };
   }
 

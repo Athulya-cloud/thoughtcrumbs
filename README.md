@@ -18,7 +18,6 @@ No account. No cloud. Nothing leaves your device.
 - **See everything at a glance:** short titles with "last note 3 weeks ago". No colours, no previews, no clutter
 - **Then versus now:** open a thing and its thoughts are grouped by day, so you can see how your thinking has changed
 - **Jot in a chain:** type, press Enter, and the box clears for the next thought. `Esc` takes you back home
-- **Speak instead of typing:** tap the mic to dictate (Chrome, Edge and Safari)
 - **Jump anywhere:** press `Cmd+K` (or `Ctrl+K`), type a few letters, and you're in that thing. Typing a new name makes a new thing
 - **A soft nudge:** turn on "Nudge" and get a quiet "Anything on your mind?" about once an hour, never between 10 pm and 7 am
 - **Calm by default:** plain black and white, and no animations if your system asks for reduced motion
@@ -31,7 +30,7 @@ No account. No cloud. Nothing leaves your device.
 
 ## Run it
 
-You need [Node.js](https://nodejs.org/) 18 or later and a modern browser (Chrome, Edge or Safari). The mic button doesn't appear in Firefox.
+You need [Node.js](https://nodejs.org/) 18 or later and a modern browser (Chrome, Edge or Safari).
 
 ```bash
 git clone https://github.com/Athulya-cloud/thoughtcrumbs.git

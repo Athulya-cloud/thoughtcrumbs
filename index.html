@@ -9,13 +9,14 @@
 </head>
 <body>
   <nav class="app-nav">
-    <button id="nav-capture" class="nav-button active" type="button">Capture</button>
+    <button id="nav-things" class="nav-button active" type="button">Things</button>
     <button id="nav-review" class="nav-button" type="button">Review</button>
+    <button id="nudge-toggle" class="nudge-toggle" type="button" aria-pressed="false">Nudge: off</button>
   </nav>
 
-  <main id="capture-view">
-    <textarea id="capture-input" placeholder="What's on your mind?"></textarea>
-    <button id="mic-button" type="button" aria-label="Dictate entry">🎤</button>
+  <main id="things-view">
+    <div id="things-home"></div>
+    <div id="thing-detail" hidden></div>
   </main>
 
   <main id="review-view" hidden>
@@ -30,8 +31,23 @@
     <div id="entry-list"></div>
   </main>
 
+  <div id="picker" class="picker" hidden>
+    <div class="picker-box">
+      <input id="picker-input" type="text" placeholder="Which thing?" autocomplete="off" />
+      <ul id="picker-list"></ul>
+    </div>
+  </div>
+
   <div id="persistence-warning" class="toast" hidden>
     Your entries won't be saved after this session.
+  </div>
+
+  <div id="nudge-toast" class="toast" hidden>
+    Anything on your mind? <button id="nudge-open" type="button">Jot</button>
+  </div>
+
+  <div id="undo-toast" class="toast" hidden>
+    <span class="undo-message"></span> <button type="button">Undo</button>
   </div>
 
   <div id="update-toast" class="toast" hidden>

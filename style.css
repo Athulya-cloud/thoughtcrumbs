@@ -36,34 +36,9 @@ body {
   border-bottom: 2px solid currentColor;
 }
 
-#capture-view {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: var(--gap);
-  gap: var(--gap);
-}
 
-#capture-input {
-  flex: 1;
-  width: 100%;
-  font-size: 1.1rem;
-  padding: var(--gap);
-  border: none;
-  resize: none;
-}
 
-#capture-input:focus {
-  outline: none;
-}
 
-#mic-button {
-  align-self: flex-end;
-  font-size: 1.5rem;
-  border: none;
-  background: none;
-  cursor: pointer;
-}
 
 #review-view {
   flex: 1;
@@ -145,3 +120,144 @@ body {
   border-radius: 0.3rem;
   cursor: pointer;
 }
+
+/* Things: plain, calm, text only */
+.nudge-toggle {
+  border: none;
+  background: none;
+  padding: 0 0.75rem;
+  font-size: 0.8rem;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.nudge-toggle[aria-pressed="true"] { opacity: 1; }
+
+#things-view {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--gap);
+}
+
+.thing-list { display: flex; flex-direction: column; }
+
+.thing-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--gap);
+  text-align: left;
+  border: none;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+  background: none;
+  padding: 1rem 0.25rem;
+  font-size: 1.35rem;
+  cursor: pointer;
+  color: inherit;
+}
+
+.thing-row:hover, .thing-row:focus-visible { background: rgba(128, 128, 128, 0.1); outline: none; }
+.thing-row.muted { opacity: 0.55; font-size: 1.1rem; }
+
+.new-thing, .back-button {
+  margin-top: 1rem;
+  border: none;
+  background: none;
+  padding: 0.5rem 0.25rem;
+  font-size: 1rem;
+  opacity: 0.7;
+  cursor: pointer;
+  color: inherit;
+}
+
+.back-button { margin-top: 0; }
+
+.new-thing-input, .jot-input {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  font: inherit;
+  font-size: 1.15rem;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: inherit;
+  resize: none;
+}
+
+.thing-title { margin: 0.5rem 0.25rem; font-size: 1.6rem; }
+
+.thought-list { list-style: none; padding: 0; margin: 1rem 0 0; }
+
+.thought {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: 0.7rem 0.25rem;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  font-size: 1.1rem;
+}
+
+.thought-text { white-space: pre-wrap; }
+.entry-thing { display: block; font-size: 0.75rem; opacity: 0.55; margin-top: 0.2rem; }
+
+.picker {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 15vh;
+}
+
+.picker-box {
+  width: min(30rem, 92vw);
+  background: Canvas;
+  color: CanvasText;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+#picker-input {
+  width: 100%;
+  padding: 0.7rem;
+  font: inherit;
+  font-size: 1.15rem;
+  border: none;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.4);
+  background: transparent;
+  color: inherit;
+}
+
+#picker-input:focus { outline: none; }
+#picker-list { list-style: none; margin: 0.25rem 0 0; padding: 0; max-height: 40vh; overflow-y: auto; }
+#picker-list li { padding: 0.65rem 0.7rem; font-size: 1.1rem; cursor: pointer; border-radius: 0.4rem; }
+#picker-list li.selected { background: rgba(128, 128, 128, 0.2); }
+
+.thing-hint { font-size: 0.8rem; opacity: 0.5; white-space: nowrap; }
+.thing-row.muted .thing-hint { display: none; }
+
+.jot-row { display: flex; align-items: flex-start; gap: 0.5rem; margin: 0.25rem 0 1rem; }
+.jot-row .jot-input { margin-top: 0; flex: 1; }
+.mic-button { border: none; background: none; font-size: 1.5rem; padding: 0.35rem; cursor: pointer; }
+.mic-button.listening { opacity: 0.5; }
+
+.last-note { margin: 0 0.25rem 0.5rem; font-size: 0.85rem; opacity: 0.55; }
+.day-heading { margin: 1.25rem 0.25rem 0.25rem; font-size: 0.8rem; text-transform: uppercase; opacity: 0.55; }
+.thought-history .thought-list { margin-top: 0; }
+.thought-actions { display: flex; gap: 0.5rem; align-items: center; flex-shrink: 0; }
+.make-thing { border: 1px solid rgba(128, 128, 128, 0.4); background: none; border-radius: 0.4rem; padding: 0.25rem 0.5rem; font-size: 0.8rem; cursor: pointer; color: inherit; }
+.file-under { font-size: 0.85rem; max-width: 9rem; }
+
+.sweep-card { margin: 0 0 1.25rem; padding: 1rem; border: 1px dashed rgba(128, 128, 128, 0.5); border-radius: 0.75rem; }
+.sweep-question { margin: 0; font-size: 0.8rem; opacity: 0.6; }
+.sweep-title { margin: 0.25rem 0 0; font-size: 1.3rem; }
+.sweep-hint { margin: 0.1rem 0 0.75rem; font-size: 0.8rem; opacity: 0.55; }
+.sweep-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.sweep-button { border: 1px solid rgba(128, 128, 128, 0.5); background: none; border-radius: 0.5rem; padding: 0.45rem 0.9rem; font-size: 0.95rem; cursor: pointer; color: inherit; }
+.sweep-later { border: none; background: none; font-size: 0.85rem; opacity: 0.55; cursor: pointer; color: inherit; margin-left: auto; }
+.thing-actions-row { display: flex; gap: 0.5rem; margin: 0.25rem 0.25rem 0.75rem; }
+.archive-name { border: none; background: none; font-size: 1.1rem; text-align: left; cursor: pointer; color: inherit; padding: 0; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

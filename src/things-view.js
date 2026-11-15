@@ -4,7 +4,8 @@ import {
 } from './things.js';
 import { buildEntry } from './capture.js';
 import {
-  startOfDay, addDays, dayKey, clock, weekday, entriesOnDay, groupByDayAscending, daysWithEntries,
+  startOfDay, addDays, clock, weekday, longDate, dayHeading, shortDate,
+  entriesOnDay, groupByDayAscending, daysWithEntries,
 } from './days.js';
 import { renderCalendar } from './calendar.js';
 import { renderGraph } from './graph.js';
@@ -81,20 +82,20 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
     return fresh;
   }
 
-  function header(title, tag, beside = []) {
+  function header(title, subtitle, beside = []) {
     const head = el('header', 'page-head');
     const row = el('div', 'title-row');
     row.append(el('h1', 'page-title', title), ...beside);
-    const tagLine = el('p', 'page-tag');
-    tagLine.append(...tag);
-    head.append(row, tagLine, el('hr', 'rule'));
+    const sub = el('p', 'page-subtitle');
+    sub.append(...subtitle);
+    head.append(row, sub);
     return head;
   }
 
-  const tag = (text) => el('span', 'tag', text);
+  const muted = (text) => el('span', 'muted', text);
   const dot = () => el('span', 'sep', ' · ');
 
-  // `HH:MM - ` followed by a box where Enter saves and the box clears for the next thought.
+  // The time, then a field where Enter saves and clears for the next thought.
   function captureLine(placeholder, onSave) {
     const li = el('li', 'note capture');
     const time = el('span', 'note-time', clock(Date.now()));
@@ -115,23 +116,27 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
       fit();
       if (text.trim()) await onSave(text);
     });
-    li.append(time, el('span', 'note-dash', ' - '), input);
+    li.append(time, input);
     return { li, input };
   }
 
   function noteItem(entry, { linkThing = true } = {}) {
     const li = el('li', 'note');
-    li.append(el('span', 'note-time', clock(entry.createdAt)), el('span', 'note-dash', ' - '));
-    li.append(el('span', 'note-text', entry.text));
+    const body = el('div', 'note-body');
+    body.append(el('span', 'note-text', entry.text));
     const thing = linkThing && entry.thingId ? thingById(entry.thingId) : null;
-    if (thing) {
-      li.append(' ', linkTo(thing.title, 'link', () => openThing(thing.id)));
-    }
+    if (thing) body.append(' ', linkTo(thing.title, 'chip', () => openThing(thing.id)));
+    li.append(el('span', 'note-time', clock(entry.createdAt)), body);
     return li;
   }
 
-  function dayLink(day) {
-    return linkTo(dayKey(day), 'link day-link', () => openDay(day));
+  function dayGroup(day) {
+    const section = el('section', 'day-group');
+    const heading = el('h3', 'day-heading');
+    heading.appendChild(linkTo(day === today() ? 'Today' : dayHeading(day), 'day-link', () => openDay(day)));
+    const list = el('ul', 'notes');
+    section.append(heading, list);
+    return { section, list };
   }
 
   function showUndo(message, undo) {
@@ -154,7 +159,7 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
     const before = statusOf(thing);
     await store.updateThing({ ...thing, status, updatedAt: Date.now() });
     if (announce) {
-      const verb = status === 'parked' ? 'Parked' : status === 'done' ? 'Done' : 'Back on today';
+      const verb = status === 'parked' ? 'Parked' : status === 'done' ? 'Done' : 'Back on your list';
       showUndo(`${verb}: ${thing.title}`, () => store.updateThing({ ...thing, status: before }));
     }
     await load();
@@ -209,11 +214,11 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
     const thing = sweep[0];
 
     const box = el('section', 'box sweep');
-    box.appendChild(el('p', 'box-label', 'still on your mind?'));
+    box.appendChild(el('p', 'box-label', 'Still on your mind?'));
     const line = el('p', 'sweep-line');
     line.append(
-      linkTo(thing.title, 'link', () => openThing(thing.id)),
-      el('span', 'muted', ` · last note ${relativeDay(lastNoteAt(entries, thing), now)}`),
+      linkTo(thing.title, 'sweep-title', () => openThing(thing.id)),
+      muted(`Last note ${relativeDay(lastNoteAt(entries, thing), now)}`),
     );
     box.appendChild(line);
     const finish = async (action) => {
@@ -225,10 +230,10 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
     };
     const actions = el('p', 'actions');
     actions.append(
-      textButton('keep', 'action', () => finish(() => store.updateThing({ ...thing, updatedAt: Date.now() }))),
-      textButton('park', 'action', () => finish(() => setStatus(thing, 'parked', { announce: false }))),
-      textButton('done', 'action', () => finish(() => setStatus(thing, 'done', { announce: false }))),
-      textButton('not now', 'action quiet', () => {
+      textButton('Keep', 'pill', () => finish(() => store.updateThing({ ...thing, updatedAt: Date.now() }))),
+      textButton('Park', 'pill', () => finish(() => setStatus(thing, 'parked', { announce: false }))),
+      textButton('Done', 'pill', () => finish(() => setStatus(thing, 'done', { announce: false }))),
+      textButton('Not now', 'action quiet', () => {
         sweep = [];
         writeSweepAt(Date.now());
         renderDay(today(), { focus: false });
@@ -240,11 +245,11 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
 
   function thingsBox(now) {
     const box = el('section', 'box');
+    const active = sortThings(things.filter((t) => statusOf(t) === 'active'));
     const label = el('p', 'box-label');
-    label.append(el('span', 'box-icon', '✧'), ' things');
+    label.append('On your mind', active.length ? muted(String(active.length)) : '');
     box.appendChild(label);
 
-    const active = sortThings(things.filter((t) => statusOf(t) === 'active'));
     const doneToday = things.filter((t) => statusOf(t) === 'done' && startOfDay(t.updatedAt) === today());
     const { shown, hiddenCount } = visibleThings(active, showAll);
     const list = el('ul', 'box-list');
@@ -261,17 +266,17 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
     shown.forEach((t) => list.appendChild(row(t, false)));
     doneToday.forEach((t) => list.appendChild(row(t, true)));
     if (shown.length === 0 && doneToday.length === 0) {
-      list.appendChild(el('li', 'muted', 'nothing here yet. add a thing, or just write below.'));
+      list.appendChild(el('li', 'box-empty', 'Nothing here yet. Add a thing, or just write below.'));
     }
     box.appendChild(list);
 
     const foot = el('p', 'box-foot');
     const newInput = el('input', 'inline-input');
     newInput.type = 'text';
-    newInput.placeholder = 'short title, then enter';
+    newInput.placeholder = 'Short title, then Enter';
     newInput.setAttribute('aria-label', 'New thing title');
     newInput.hidden = true;
-    const newButton = textButton('+ new thing', 'action', () => {
+    const newButton = textButton('New thing', 'action strong', () => {
       foot.hidden = true;
       newInput.hidden = false;
       newInput.focus();
@@ -287,12 +292,12 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
       }
     });
     foot.appendChild(newButton);
-    if (hiddenCount > 0) foot.append(textButton(`show ${hiddenCount} more`, 'action', () => { showAll = true; renderDay(today(), { focus: false }); }));
-    else if (showAll && active.length > HOME_CAP) foot.append(textButton('show fewer', 'action', () => { showAll = false; renderDay(today(), { focus: false }); }));
+    if (hiddenCount > 0) foot.append(textButton(`Show ${hiddenCount} more`, 'action', () => { showAll = true; renderDay(today(), { focus: false }); }));
+    else if (showAll && active.length > HOME_CAP) foot.append(textButton('Show fewer', 'action', () => { showAll = false; renderDay(today(), { focus: false }); }));
     const inboxCount = inboxEntries(entries).length;
-    if (inboxCount > 0) foot.append(textButton(`inbox (${inboxCount})`, 'action', openInbox));
+    if (inboxCount > 0) foot.append(textButton(`Inbox ${inboxCount}`, 'action', openInbox));
     const archivedCount = things.length - active.length;
-    if (archivedCount > 0) foot.append(textButton(`parked & done (${archivedCount})`, 'action', openArchive));
+    if (archivedCount > 0) foot.append(textButton(`Parked & done ${archivedCount}`, 'action', openArchive));
     box.append(foot, newInput);
     return box;
   }
@@ -309,9 +314,12 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
     next.dataset.step = 'next';
     prev.setAttribute('aria-label', 'Previous day');
     next.setAttribute('aria-label', 'Next day');
-    const tagParts = [tag('#daily'), dot(), el('span', 'muted', weekday(day))];
-    if (!isToday) tagParts.push(dot(), linkTo('back to today', 'link', () => openDay(today())));
-    page.appendChild(header(dayKey(day), tagParts, [prev, next]));
+    const steps = el('span', 'steps');
+    steps.append(prev, next);
+    const subtitle = [muted(longDate(day))];
+    if (isToday) subtitle.push(dot(), muted('Today'));
+    else subtitle.push(dot(), linkTo('Back to today', 'link', () => openDay(today())));
+    page.appendChild(header(weekday(day), subtitle, [steps]));
 
     if (isToday) {
       page.appendChild(thingsBox(now));
@@ -325,7 +333,7 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
     todays.forEach((entry) => list.appendChild(noteItem(entry)));
     let capture = null;
     if (isToday) {
-      capture = captureLine(todays.length ? 'next thought…' : 'what’s on your mind?', async (text) => {
+      capture = captureLine(todays.length ? 'Next thought…' : 'What’s on your mind?', async (text) => {
         const entry = buildEntry(text, Date.now(), null);
         if (!entry) return;
         await store.addEntry(entry);
@@ -334,7 +342,7 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
       });
       list.appendChild(capture.li);
     } else if (todays.length === 0) {
-      list.appendChild(el('li', 'note muted', 'nothing written this day.'));
+      list.appendChild(el('li', 'empty', 'Nothing written this day.'));
     }
     page.appendChild(list);
 
@@ -342,9 +350,9 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
     for (const entry of todays) {
       const thing = entry.thingId ? thingById(entry.thingId) : null;
       if (thing) linked.set(thing.id, { label: thing.title, onOpen: () => openThing(thing.id) });
-      else if (entry.thingId === null) linked.set('inbox', { label: 'inbox', onOpen: openInbox });
+      else if (entry.thingId === null) linked.set('inbox', { label: 'Inbox', onOpen: openInbox });
     }
-    renderSidebar(day, { center: dayKey(day), nodes: [...linked.values()] });
+    renderSidebar(day, { center: dayHeading(day), nodes: [...linked.values()] });
     const target = focusAfter && document.querySelector(focusAfter);
     if (target) target.focus();
     else if (focus && capture) capture.input.focus({ preventScroll: fresh });
@@ -358,41 +366,37 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
     const fresh = start({ kind: 'thing', id: thingId });
     const status = statusOf(thing);
     const notes = entriesForThing(entries, thingId);
-    const tagParts = [tag('#thing')];
-    if (status !== 'active') tagParts.push(dot(), el('span', 'muted', status));
-    if (notes.length) tagParts.push(dot(), el('span', 'muted', `last note ${relativeDay(lastNoteAt(entries, thing))}`));
-    page.appendChild(header(thing.title, tagParts));
+    const subtitle = [];
+    if (status !== 'active') subtitle.push(muted(status === 'done' ? 'Done' : 'Parked'), dot());
+    subtitle.push(muted(notes.length ? `Last note ${relativeDay(lastNoteAt(entries, thing))}` : 'No notes yet'));
+    page.appendChild(header(thing.title, subtitle));
 
     const actions = el('p', 'actions page-actions');
     if (status === 'active') {
-      for (const [label, next] of [['park', 'parked'], ['done', 'done']]) {
-        actions.appendChild(textButton(label, 'action', async () => {
+      for (const [label, next] of [['Park', 'parked'], ['Done', 'done']]) {
+        actions.appendChild(textButton(label, 'pill', async () => {
           await setStatus(thing, next);
           renderDay(today());
         }));
       }
     } else {
-      actions.appendChild(textButton('bring back', 'action', async () => {
+      actions.appendChild(textButton('Bring back', 'pill', async () => {
         await setStatus(thing, 'active');
         renderThing(thingId);
       }));
     }
     page.appendChild(actions);
 
-    page.appendChild(el('h2', 'section-title', 'Notes'));
-    const list = el('ul', 'notes');
     const groups = groupByDayAscending(notes);
     if (groups.length === 0 || groups[groups.length - 1].day !== today()) {
       groups.push({ day: today(), entries: [] });
     }
     let capture = null;
     for (const group of groups) {
-      const li = el('li', 'note day-node');
-      li.append(dayLink(group.day), el('span', 'muted', ` ${weekday(group.day).slice(0, 3)}`));
-      const nested = el('ul', 'notes nested');
+      const { section, list: nested } = dayGroup(group.day);
       group.entries.forEach((entry) => nested.appendChild(noteItem(entry, { linkThing: false })));
       if (group.day === today()) {
-        capture = captureLine('jot a thought…', async (text) => {
+        capture = captureLine('Jot a thought…', async (text) => {
           const entry = buildEntry(text, Date.now(), thingId);
           if (!entry) return;
           await store.addEntry(entry);
@@ -402,15 +406,13 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
         });
         nested.appendChild(capture.li);
       }
-      li.appendChild(nested);
-      list.appendChild(li);
+      page.appendChild(section);
     }
-    page.appendChild(list);
 
     const days = [...new Set(notes.map((e) => startOfDay(e.createdAt)))].sort((a, b) => b - a);
     renderSidebar(null, {
       center: thing.title,
-      nodes: days.map((day) => ({ label: dayKey(day).slice(5), onOpen: () => openDay(day) })),
+      nodes: days.map((day) => ({ label: shortDate(day), onOpen: () => openDay(day) })),
     });
     capture.input.focus({ preventScroll: fresh });
   }
@@ -420,19 +422,16 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
   function renderInbox() {
     start({ kind: 'inbox' });
     const thoughts = inboxEntries(entries);
-    page.appendChild(header('inbox', [tag('#inbox'), dot(), el('span', 'muted', 'notes without a thing yet')]));
-    const list = el('ul', 'notes');
-    if (thoughts.length === 0) list.appendChild(el('li', 'note muted', 'inbox is empty.'));
+    page.appendChild(header('Inbox', [muted('Notes that don’t belong to a thing yet')]));
+    if (thoughts.length === 0) page.appendChild(el('p', 'empty', 'Inbox is empty.'));
     for (const group of groupByDayAscending(thoughts)) {
-      const li = el('li', 'note day-node');
-      li.appendChild(dayLink(group.day));
-      const nested = el('ul', 'notes nested');
+      const { section, list: nested } = dayGroup(group.day);
       for (const entry of group.entries) {
         const item = noteItem(entry);
         const actions = el('div', 'note-actions');
         const select = el('select', 'move-to');
         select.setAttribute('aria-label', 'Move to thing');
-        select.appendChild(new Option('move to…', ''));
+        select.appendChild(new Option('Move to…', ''));
         for (const thing of sortThings(things)) select.appendChild(new Option(thing.title, thing.id));
         select.addEventListener('change', async () => {
           if (!select.value) return;
@@ -442,7 +441,7 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
           if (inboxEntries(entries).length === 0) renderDay(today());
           else renderInbox();
         });
-        const promote = textButton('make a thing', 'action', async () => {
+        const promote = textButton('Make a thing', 'action', async () => {
           const thing = buildThing(entry.text.slice(0, 80), Date.now());
           if (!thing) return;
           await store.addThing(thing);
@@ -451,35 +450,38 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
           renderThing(thing.id);
         });
         actions.append(select, promote);
-        item.appendChild(actions);
+        item.querySelector('.note-body').appendChild(actions);
         nested.appendChild(item);
       }
-      li.appendChild(nested);
-      list.appendChild(li);
+      page.appendChild(section);
     }
-    page.appendChild(list);
     renderSidebar(null, null);
   }
 
   function renderArchive() {
     start({ kind: 'archive' });
-    page.appendChild(header('parked & done', [tag('#archive')]));
-    const list = el('ul', 'notes');
+    page.appendChild(header('Parked & done', [muted('Things you set aside or finished')]));
     const archived = sortThings(things.filter((t) => statusOf(t) !== 'active'));
-    if (archived.length === 0) list.appendChild(el('li', 'note muted', 'nothing parked.'));
-    for (const thing of archived) {
-      const li = el('li', 'note');
-      li.append(
-        linkTo(thing.title, 'link', () => openThing(thing.id)),
-        el('span', 'muted', ` · ${statusOf(thing)} · `),
-        textButton('bring back', 'action', async () => {
-          await setStatus(thing, 'active', { announce: false });
-          renderArchive();
-        }),
-      );
-      list.appendChild(li);
+    if (archived.length === 0) {
+      page.appendChild(el('p', 'empty', 'Nothing parked.'));
+    } else {
+      const box = el('section', 'box');
+      const list = el('ul', 'box-list');
+      for (const thing of archived) {
+        const li = el('li', 'box-line');
+        li.append(
+          linkTo(thing.title, 'row-title', () => openThing(thing.id)),
+          muted(statusOf(thing) === 'done' ? 'Done' : 'Parked'),
+          textButton('Bring back', 'action', async () => {
+            await setStatus(thing, 'active', { announce: false });
+            renderArchive();
+          }),
+        );
+        list.appendChild(li);
+      }
+      box.appendChild(list);
+      page.appendChild(box);
     }
-    page.appendChild(list);
     renderSidebar(null, null);
   }
 

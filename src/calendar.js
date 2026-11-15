@@ -1,6 +1,6 @@
 import { monthGrid, dayKey, startOfDay } from './days.js';
 
-const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 function button(className, text, label) {
   const b = document.createElement('button');
@@ -20,11 +20,11 @@ export function renderCalendar(root, { year, month, selected, marked, onPickDay,
   head.className = 'cal-head';
   const title = document.createElement('span');
   title.className = 'cal-title';
-  title.textContent = new Date(year, month, 1).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+  title.textContent = new Date(year, month, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
   const nav = document.createElement('span');
   nav.className = 'cal-nav';
   const prev = button('cal-step', '‹', 'Previous month');
-  const todayButton = button('cal-today', 'today');
+  const todayButton = button('cal-today', 'Today');
   const next = button('cal-step', '›', 'Next month');
   prev.addEventListener('click', () => onMonth(-1));
   next.addEventListener('click', () => onMonth(1));

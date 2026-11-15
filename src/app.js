@@ -90,7 +90,7 @@ function setupNudge(openPicker) {
   let lastNudgeAt = Date.now();
 
   function paint() {
-    toggle.textContent = `nudge: ${enabled ? 'on' : 'off'}`;
+    toggle.textContent = `Nudge: ${enabled ? 'on' : 'off'}`;
     toggle.setAttribute('aria-pressed', String(enabled));
   }
 

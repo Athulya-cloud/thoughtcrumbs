@@ -1,5 +1,5 @@
 import { searchEntries, filterByDateRange } from './filters.js';
-import { groupByDayAscending, dayKey, clock, weekday } from './days.js';
+import { groupByDayAscending, clock, dayHeading } from './days.js';
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -22,25 +22,25 @@ function link(label, className, onClick) {
 function renderResults(listEl, entries, hasAnyEntries, thingTitles, { openDay, openThing }) {
   listEl.innerHTML = '';
   if (entries.length === 0) {
-    listEl.appendChild(el('li', 'note muted', hasAnyEntries ? 'no notes match your search.' : 'no notes yet.'));
+    listEl.appendChild(el('p', 'empty', hasAnyEntries ? 'No notes match your search.' : 'No notes yet.'));
     return;
   }
   for (const group of groupByDayAscending(entries).reverse()) {
-    const day = el('li', 'note day-node');
-    day.append(
-      link(dayKey(group.day), 'link day-link', () => openDay(group.day)),
-      el('span', 'muted', ` ${weekday(group.day).slice(0, 3)}`),
-    );
-    const nested = el('ul', 'notes nested');
+    const section = el('section', 'day-group');
+    const heading = el('h3', 'day-heading');
+    heading.appendChild(link(dayHeading(group.day), 'day-link', () => openDay(group.day)));
+    const list = el('ul', 'notes');
     for (const entry of group.entries) {
       const item = el('li', 'note');
-      item.append(el('span', 'note-time', clock(entry.createdAt)), el('span', 'note-dash', ' - '), el('span', 'note-text', entry.text));
+      const body = el('div', 'note-body');
+      body.appendChild(el('span', 'note-text', entry.text));
       const title = thingTitles.get(entry.thingId);
-      if (title) item.append(' ', link(title, 'link', () => openThing(entry.thingId)));
-      nested.appendChild(item);
+      if (title) body.append(' ', link(title, 'chip', () => openThing(entry.thingId)));
+      item.append(el('span', 'note-time', clock(entry.createdAt)), body);
+      list.appendChild(item);
     }
-    day.appendChild(nested);
-    listEl.appendChild(day);
+    section.append(heading, list);
+    listEl.appendChild(section);
   }
 }
 

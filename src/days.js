@@ -26,7 +26,22 @@ export function clock(timestamp) {
 }
 
 export function weekday(timestamp) {
-  return new Date(timestamp).toLocaleDateString('en-GB', { weekday: 'long' }).toLowerCase();
+  return new Date(timestamp).toLocaleDateString(undefined, { weekday: 'long' });
+}
+
+// "15 November 2026" (order follows the browser's locale).
+export function longDate(timestamp) {
+  return new Date(timestamp).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// "Friday, 13 November"
+export function dayHeading(timestamp) {
+  return new Date(timestamp).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+// "13 Nov"
+export function shortDate(timestamp) {
+  return new Date(timestamp).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 }
 
 // Entries written on the given day, oldest first, like a journal page.

@@ -18,7 +18,7 @@ export function renderGraph(root, { center, nodes }) {
   root.innerHTML = '';
   const label = document.createElement('p');
   label.className = 'side-label';
-  label.textContent = 'linked';
+  label.textContent = 'Linked';
   root.appendChild(label);
 
   const cx = WIDTH / 2;
@@ -62,7 +62,7 @@ export function renderGraph(root, { center, nodes }) {
   if (shown.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'side-empty';
-    empty.textContent = 'no links yet';
+    empty.textContent = 'No links yet';
     root.appendChild(empty);
   }
 }

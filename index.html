@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)" />
-  <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#161618" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)" />
   <title>Thoughtcrumbs</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icon.svg" type="image/svg+xml" />
@@ -12,12 +12,12 @@
 </head>
 <body>
   <header class="topbar">
-    <span class="brand">thoughtcrumbs</span>
+    <span class="brand">Thoughtcrumbs</span>
     <nav class="topnav" aria-label="Main">
-      <button id="nav-things" class="nav-link active" type="button">today</button>
-      <button id="nav-review" class="nav-link" type="button">search</button>
+      <button id="nav-things" class="nav-link active" type="button">Today</button>
+      <button id="nav-review" class="nav-link" type="button">Search</button>
       <span class="nav-hint" aria-hidden="true">⌘K</span>
-      <button id="nudge-toggle" class="nav-link nudge-toggle" type="button" aria-pressed="false">nudge: off</button>
+      <button id="nudge-toggle" class="nav-link nudge-toggle" type="button" aria-pressed="false">Nudge: off</button>
     </nav>
   </header>
 
@@ -28,19 +28,18 @@
 
     <main id="review-view" class="page" hidden>
       <header class="page-head">
-        <h1 class="page-title">search</h1>
-        <p class="page-tag"><span class="tag">#all-notes</span></p>
-        <hr class="rule" />
+        <div class="title-row"><h1 class="page-title">Search</h1></div>
+        <p class="page-subtitle"><span class="muted">Every note, newest day first</span></p>
       </header>
       <div class="review-controls">
-        <input id="search-input" type="search" placeholder="search notes…" aria-label="Search notes" />
+        <input id="search-input" type="search" placeholder="Search notes" aria-label="Search notes" />
         <select id="range-select" aria-label="Date range">
-          <option value="7d">last 7 days</option>
-          <option value="30d">last 30 days</option>
-          <option value="all" selected>all time</option>
+          <option value="7d">Last 7 days</option>
+          <option value="30d">Last 30 days</option>
+          <option value="all" selected>All time</option>
         </select>
       </div>
-      <ul id="entry-list" class="notes"></ul>
+      <div id="entry-list"></div>
     </main>
 
     <aside id="sidebar" class="sidebar" aria-label="Calendar and links">
@@ -51,7 +50,7 @@
 
   <div id="picker" class="picker" hidden>
     <div class="picker-box" role="dialog" aria-label="Jump to a thing">
-      <input id="picker-input" type="text" placeholder="which thing?" autocomplete="off" />
+      <input id="picker-input" type="text" placeholder="Jump to a thing" autocomplete="off" />
       <ul id="picker-list"></ul>
     </div>
   </div>
@@ -61,15 +60,15 @@
   </div>
 
   <div id="nudge-toast" class="toast" hidden>
-    Anything on your mind? <button id="nudge-open" type="button">jot</button>
+    Anything on your mind? <button id="nudge-open" type="button">Jot</button>
   </div>
 
   <div id="undo-toast" class="toast" hidden>
-    <span class="undo-message"></span> <button type="button">undo</button>
+    <span class="undo-message"></span> <button type="button">Undo</button>
   </div>
 
   <div id="update-toast" class="toast" hidden>
-    Update ready. <button id="update-button" type="button">refresh</button>
+    Update ready. <button id="update-button" type="button">Refresh</button>
   </div>
 
   <script type="module" src="./src/app.js"></script>

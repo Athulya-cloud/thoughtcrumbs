@@ -261,9 +261,23 @@ final class NotesController {
         return URL(string: raw) ?? URL(string: "https://athulya-cloud.github.io/thoughtcrumbs/")!
     }
 
+    /// The Thoughtcrumbs app a browser created when you installed the site, if any.
+    static var installedApp: URL? {
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let folders = ["Applications/Chrome Apps.localized", "Applications/Brave Browser Apps.localized", "Applications"]
+        return folders
+            .map { home.appendingPathComponent($0).appendingPathComponent("Thoughtcrumbs.app") }
+            .first { FileManager.default.fileExists(atPath: $0.path) }
+    }
+
     func openThoughtcrumbs() {
         let url = Self.thoughtcrumbsURL
         close()
+        // Prefer the installed offline app, so Thoughtcrumbs opens in its own window and works without internet.
+        if let app = Self.installedApp {
+            NSWorkspace.shared.openApplication(at: app, configuration: NSWorkspace.OpenConfiguration())
+            return
+        }
         guard ["localhost", "127.0.0.1"].contains(url.host ?? "") else {
             NSWorkspace.shared.open(url)
             return

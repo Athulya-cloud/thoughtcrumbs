@@ -54,6 +54,19 @@ Offline use starts from your second visit, once the service worker has installed
 
 **Forget to open it?** Keep it pinned as an installed app and switch Nudge on. The nudge only works while the app is open or running in the background, because a browser can't wake a closed app.
 
+## Focus Pill (macOS)
+
+A small black pomodoro pill that floats at the top of your Mac screen. It lives in [`focus-pill/`](focus-pill/).
+
+- Type the one thing you're working on, press Enter, and a 25-minute focus starts.
+- Click the pill's dot to see today's sessions and notes. **Open Thoughtcrumbs** takes you to the journal: the installed app if you have one, otherwise https://athulya-cloud.github.io/thoughtcrumbs/.
+
+Build it (needs Xcode command-line tools):
+
+```bash
+cd focus-pill && ./make_app.sh && open "build/Focus Pill.app"
+```
+
 ## Tests
 
 ```bash

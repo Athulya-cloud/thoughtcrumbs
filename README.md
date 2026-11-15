@@ -23,7 +23,17 @@ Every 4th break is 15 min. After midnight, Idle asks if you want to call it. You
 
 **⌃⌥⇧Space** hides or shows the pill (and brings it back if it went off screen). Opening the app again from Spotlight also brings it back. **⌘Q** quits while the pill has focus.
 
-Right-click the pill: focus length (25 / 50), open today's log, reset position, quit.
+Right-click the pill: focus length (25 / 50), today's notes, open Thoughtcrumbs, open today's log, reset position, quit.
+
+## Today's notes and Thoughtcrumbs
+
+Click the pill's dot, or the ☰ button that appears on hover, to drop a small panel under the pill with today's sessions and notes, newest first. Click anywhere else to close it.
+
+**Open Thoughtcrumbs** opens your [Thoughtcrumbs](https://github.com/Athulya-cloud/thoughtcrumbs) journal at https://athulya-cloud.github.io/thoughtcrumbs/ (the live GitHub Pages site). If you point it at a local server that isn't running, the pill says so instead of opening an error page. Point it somewhere else with:
+
+```bash
+defaults write local.athulya.focuspill thoughtcrumbsURL "http://localhost:4000"
+```
 
 ## Log format
 

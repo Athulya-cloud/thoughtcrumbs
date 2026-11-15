@@ -64,6 +64,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var host: PillHostingView<PillView>!
     private let hotKeys = HotKeys()
     private(set) var model: PillModel!
+    private var notes: NotesController!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Hidden pill = no visible windows; without this macOS quietly kills the app.
@@ -98,12 +99,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         model.onWantsKey = { [weak self] in self?.takeKey() }
         model.onRelinquish = { [weak self] in self?.relinquish() }
         model.onResetPosition = { [weak self] in self?.placeDefault(); self?.panel.orderFrontRegardless() }
+        notes = NotesController(model: model, pill: panel)
+        model.onToggleNotes = { [weak self] in self?.notes.toggle() }
+        model.onOpenThoughtcrumbs = { [weak self] in self?.notes.openThoughtcrumbs() }
 
         panel.orderFrontRegardless()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in self?.panel.invalidateShadow() }
 
         if let dir = snapshotDir {
-            Snapshotter(model: model, view: host, dir: URL(fileURLWithPath: dir)).run()
+            Snapshotter(model: model, view: host, notes: notes, dir: URL(fileURLWithPath: dir)).run()
             return
         }
 
@@ -128,6 +132,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func toggleVisible() {
         if panel.isVisible {
             if panel.isKeyWindow { model.cancelCapture() }
+            notes.close()
             panel.orderOut(nil)
         } else {
             let onScreen = NSScreen.screens.contains { $0.visibleFrame.intersects(panel.frame) }

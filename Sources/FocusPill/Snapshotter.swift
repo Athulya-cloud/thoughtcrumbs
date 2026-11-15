@@ -5,6 +5,7 @@ import AppKit
 struct Snapshotter {
     let model: PillModel
     let view: NSView
+    let notes: NotesController
     let dir: URL
 
     func run() {
@@ -24,12 +25,13 @@ struct Snapshotter {
             ("10-toast", { m in m.capturing = false; m.toast = "Noted under “\(task)”" }),
             ("11-idle-late", { m in m.toast = nil; m.phase = .idle; m.doneToday = 3; m.now = { late } }),
             ("12-idle-count", { m in m.now = Date.init; m.doneToday = 3 }),
+            ("13-idle-hover", { m in m.hover = true }),
         ]
         step(stages, 0)
     }
 
     private func step(_ stages: [(String, (PillModel) -> Void)], _ i: Int) {
-        guard i < stages.count else { logSelfTest(); NSApp.terminate(nil); return }
+        guard i < stages.count else { notesShot(); return }
         stages[i].1(model)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
             capture(stages[i].0)
@@ -37,11 +39,45 @@ struct Snapshotter {
         }
     }
 
-    private func capture(_ name: String) {
+    private func capture(_ name: String, from source: NSView? = nil) {
+        let view = source ?? self.view
         view.layoutSubtreeIfNeeded()
         guard let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
         view.cacheDisplay(in: view.bounds, to: rep)
         try? rep.representation(using: .png, properties: [:])?.write(to: dir.appendingPathComponent(name + ".png"))
+    }
+
+    /// Opens the drawer on whatever FOCUS_LOG_DIR holds today, captures it, then finishes.
+    private func notesShot() {
+        notes.show()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            capture("14-notes", from: notes.host)
+            notes.close()
+            let parsed = LogParser.parse(sampleLog)
+            print("parser blocks=\(parsed.count) items=\(parsed.map(\.items.count)) titles=\(parsed.map(\.title))")
+            logSelfTest()
+            NSApp.terminate(nil)
+        }
+    }
+
+    private var sampleLog: String {
+        """
+        # Focus · 2026-11-15
+
+        ## 09:10  Inbox
+        - idea before any task
+
+        ## 09:12  Draft X post
+        - ask about pack names
+        - ✓ 3 hooks drafted  (25 min)
+
+        ## 09:45  Draft X post (cont.)
+        - thought during break
+
+        ## 10:00  Fix cover image
+        - stopped after 7 min
+        - discarded
+        """
     }
 
     private func logSelfTest() {

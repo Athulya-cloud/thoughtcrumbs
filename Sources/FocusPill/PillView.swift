@@ -75,10 +75,12 @@ struct PillView: View {
 
     private var idleRow: some View {
         HStack(spacing: 10) {
-            dot(Palette.faint, filled: false)
+            notesDot(dot(Palette.faint, filled: false))
             field(m.idlePrompt, text: $m.input, submit: m.startFocus, cancel: m.cancelIdle)
             if !m.input.trimmingCharacters(in: .whitespaces).isEmpty {
                 hint("\(m.focusMinutes)m ↵")
+            } else if m.hover || m.notesOpen {
+                notesButton.transition(.opacity)
             } else if m.doneToday > 0 {
                 hint("\(m.doneToday) done today")
             }
@@ -93,7 +95,7 @@ struct PillView: View {
             return m.task
         }()
         return HStack(spacing: 12) {
-            dot(accent.opacity(m.paused ? 0.35 : 1), filled: true)
+            notesDot(dot(accent.opacity(m.paused ? 0.35 : 1), filled: true))
             Text(m.clock)
                 .font(Palette.clock)
                 .foregroundStyle(m.paused ? Palette.dim : Palette.fg)
@@ -106,6 +108,7 @@ struct PillView: View {
             Spacer(minLength: 4)
             if m.hover {
                 HStack(spacing: 2) {
+                    notesButton
                     iconButton(m.paused ? "play.fill" : "pause.fill",
                                help: m.paused ? "Resume" : "Pause", action: m.togglePause)
                     iconButton(isFocus ? "checkmark" : "forward.end.fill",
@@ -126,6 +129,7 @@ struct PillView: View {
             field("What got done?", text: $m.input, submit: m.submitReview, cancel: m.skipReview)
             if m.hover {
                 HStack(spacing: 2) {
+                    notesButton
                     iconButton("cup.and.saucer.fill", help: "Log it and start break", action: m.skipReview)
                     iconButton("xmark", help: "Didn't count — discard", action: m.discardReview)
                 }
@@ -187,6 +191,20 @@ struct PillView: View {
         .frame(width: 8, height: 8)
     }
 
+    /// The leading dot doubles as the way into today's notes.
+    private func notesDot(_ content: some View) -> some View {
+        Button(action: m.toggleNotes) {
+            content.frame(width: 18, height: 26).contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, -5)
+        .help("Today's notes")
+    }
+
+    private var notesButton: some View {
+        iconButton("list.bullet", help: m.notesOpen ? "Hide today's notes" : "Today's notes", action: m.toggleNotes)
+    }
+
     private func hint(_ s: String) -> some View {
         Text(s).font(Palette.hint).foregroundStyle(Palette.faint).fixedSize()
     }
@@ -215,6 +233,8 @@ struct PillView: View {
             Text("50 min").tag(50)
         }
         Divider()
+        Button(m.notesOpen ? "Hide today's notes" : "Today's notes") { m.toggleNotes() }
+        Button("Open Thoughtcrumbs") { m.openThoughtcrumbs() }
         Button("Open today's log") { m.openLog() }
         Button("Reset position") { m.onResetPosition?() }
         Divider()

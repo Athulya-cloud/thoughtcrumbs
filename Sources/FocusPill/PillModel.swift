@@ -20,6 +20,7 @@ final class PillModel: ObservableObject {
     @Published var overtime: TimeInterval = 0
     @Published var longBreak = false
     @Published var doneToday = 0
+    @Published var notesOpen = false
     @Published var focusMinutes: Int {
         didSet { UserDefaults.standard.set(focusMinutes, forKey: "focusMinutes") }
     }
@@ -28,6 +29,8 @@ final class PillModel: ObservableObject {
     var onWantsKey: (() -> Void)?
     var onRelinquish: (() -> Void)?
     var onResetPosition: (() -> Void)?
+    var onToggleNotes: (() -> Void)?
+    var onOpenThoughtcrumbs: (() -> Void)?
 
     var now: () -> Date = Date.init
     let log: FocusLog
@@ -172,6 +175,9 @@ final class PillModel: ObservableObject {
     func cancelIdle() {
         onRelinquish?()
     }
+
+    func toggleNotes() { onToggleNotes?() }
+    func openThoughtcrumbs() { onOpenThoughtcrumbs?() }
 
     func openLog() {
         NSWorkspace.shared.open(log.ensureFile())

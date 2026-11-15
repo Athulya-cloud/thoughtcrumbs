@@ -49,7 +49,7 @@ export function initPicker(root, { getThings, onPick, onCreate }) {
 
   input.addEventListener('input', () => { selected = 0; update(); });
   input.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') close();
+    if (event.key === 'Escape') { event.stopPropagation(); close(); }
     else if (event.key === 'ArrowDown') { event.preventDefault(); selected = Math.min(selected + 1, options.length - 1); render(); }
     else if (event.key === 'ArrowUp') { event.preventDefault(); selected = Math.max(selected - 1, 0); render(); }
     else if (event.key === 'Enter' && options[selected]) { event.preventDefault(); choose(options[selected]); }

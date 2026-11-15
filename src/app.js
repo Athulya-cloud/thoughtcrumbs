@@ -26,31 +26,49 @@ async function main() {
     review: { el: document.querySelector('#review-view'), nav: document.querySelector('#nav-review') },
   };
 
-  const review = await initReviewView(store, views.review.el);
-  const things = await initThingsView(store, views.things.el);
-
-  async function show(name) {
-    if (name === 'review') await review.refresh();
-    if (name === 'things') await things.showHome();
+  function reveal(name) {
     for (const [key, view] of Object.entries(views)) {
       view.el.hidden = key !== name;
       view.nav.classList.toggle('active', key === name);
+      if (key === name) view.nav.setAttribute('aria-current', 'page');
+      else view.nav.removeAttribute('aria-current');
     }
   }
 
-  for (const [name, view] of Object.entries(views)) {
-    view.nav.addEventListener('click', () => show(name));
+  const things = await initThingsView(store, views.things.el, {
+    sidebar: document.querySelector('#sidebar'),
+    reveal: () => reveal('things'),
+  });
+  const review = await initReviewView(store, views.review.el, {
+    openDay: (day) => things.openDay(day),
+    openThing: (id) => things.openThing(id),
+  });
+
+  async function show(name) {
+    if (name === 'things') await things.showHome();
+    if (name === 'review') {
+      await review.refresh();
+      reveal('review');
+      things.renderSidebar();
+      review.focus();
+    }
   }
+
+  views.things.nav.addEventListener('click', () => show('things'));
+  views.review.nav.addEventListener('click', () => show('review'));
+
+  const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+  document.querySelector('.nav-hint').textContent = isMac ? '⌘K' : 'Ctrl+K';
 
   const picker = initPicker(document.querySelector('#picker'), {
     getThings: () => things.getThings(),
-    onPick: async (id) => { await show('things'); await things.openThing(id); },
-    onCreate: async (title) => { await show('things'); await things.createThing(title); },
+    onPick: (id) => things.openThing(id),
+    onCreate: (title) => things.createThing(title),
   });
 
   window.addEventListener('keydown', async (event) => {
-    if (event.key === 'Escape' && !picker.isOpen() && things.isInside()) {
-      await things.showHome();
+    if (event.key === 'Escape' && !picker.isOpen() && (things.isInside() || !views.review.el.hidden)) {
+      await show('things');
       return;
     }
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
@@ -72,7 +90,7 @@ function setupNudge(openPicker) {
   let lastNudgeAt = Date.now();
 
   function paint() {
-    toggle.textContent = `Nudge: ${enabled ? 'on' : 'off'}`;
+    toggle.textContent = `nudge: ${enabled ? 'on' : 'off'}`;
     toggle.setAttribute('aria-pressed', String(enabled));
   }
 

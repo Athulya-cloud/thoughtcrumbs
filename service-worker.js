@@ -1,4 +1,4 @@
-const CACHE_NAME = 'interstitial-journal-v7';
+const CACHE_NAME = 'interstitial-journal-v8';
 const APP_SHELL = [
   './',
   './index.html',
@@ -15,6 +15,9 @@ const APP_SHELL = [
   './src/things-view.js',
   './src/picker.js',
   './src/nudge.js',
+  './src/days.js',
+  './src/calendar.js',
+  './src/graph.js',
 ];
 
 self.addEventListener('install', (event) => {

@@ -3,6 +3,7 @@ import { initReviewView } from './review.js';
 import { initThingsView } from './things-view.js';
 import { initPicker } from './picker.js';
 import { shouldNudge } from './nudge.js';
+import { readPillHash, importPillEntries, localSeenIds } from './pill-import.js';
 
 const NUDGE_KEY = 'thoughtcrumbs-nudge';
 
@@ -78,7 +79,28 @@ async function main() {
     }
   });
 
+  // Focus Pill hands over today's notes in the link fragment (#pill=…).
+  async function pullFromPill() {
+    const entries = readPillHash(window.location.hash);
+    if (!entries) return;
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    const added = await importPillEntries(store, entries, localSeenIds());
+    if (added) {
+      const toast = document.querySelector('#import-toast');
+      toast.textContent = `Added ${added} note${added === 1 ? '' : 's'} from Focus Pill`;
+      toast.hidden = false;
+      setTimeout(() => { toast.hidden = true; }, 4000);
+    }
+  }
+
+  window.addEventListener('hashchange', async () => {
+    if (!window.location.hash.startsWith('#pill=')) return;
+    await pullFromPill();
+    await show('things');
+  });
+
   setupNudge(() => picker.open());
+  await pullFromPill();
   await show('things');
   setupServiceWorker();
 }

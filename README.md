@@ -60,6 +60,7 @@ A small black pomodoro pill that floats at the top of your Mac screen. It lives 
 
 - Type the one thing you're working on, press Enter, and a 25-minute focus starts.
 - Click the pill's dot to see today's sessions and notes. **Open Thoughtcrumbs** takes you to the journal: the installed app if you have one, otherwise https://athulya-cloud.github.io/thoughtcrumbs/.
+- Notes and finished sessions from the pill come with you: Thoughtcrumbs adds today's new ones when it opens and skips any it already has (or you deleted). They travel in the link's `#` part, which the browser never sends to the server.
 
 Build it (needs Xcode command-line tools):
 

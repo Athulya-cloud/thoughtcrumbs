@@ -95,5 +95,7 @@ struct Snapshotter {
         let fresh = FocusLog(dir: logDir) // simulates an app restart
         fresh.done("", task: "Fix cover image", minutes: 25, at: t0)
         print("doneCount=\(fresh.doneCount(on: t0))")
+        print("outbox=\(fresh.thoughtcrumbsOutbox(at: t0).count)")
+        print("handoff=\(NotesController.handoffFragment(fresh.thoughtcrumbsOutbox(at: t0)) ?? "")")
     }
 }

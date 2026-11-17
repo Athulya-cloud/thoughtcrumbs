@@ -29,7 +29,7 @@ Right-click the pill: focus length (25 / 50), today's notes, open Thoughtcrumbs,
 
 Click the pill's dot, or the ☰ button that appears on hover, to drop a small panel under the pill with today's sessions and notes, newest first. Click anywhere else to close it.
 
-**Open Thoughtcrumbs** opens the Thoughtcrumbs app if you installed it from the browser (it then works offline, in its own window). Otherwise it opens https://athulya-cloud.github.io/thoughtcrumbs/. If you point it at a local server that isn't running, the pill says so instead of opening an error page. Point it somewhere else with:
+**Open Thoughtcrumbs** opens the Thoughtcrumbs app if you installed it from the browser (it then works offline, in its own window). It also hands over today's notes and finished sessions (the day ends at 05:00), and Thoughtcrumbs adds the ones it hasn't seen. The pill keeps them in `.thoughtcrumbs-outbox.json` in your log folder. Otherwise it opens https://athulya-cloud.github.io/thoughtcrumbs/. If you point it at a local server that isn't running, the pill says so instead of opening an error page. Point it somewhere else with:
 
 ```bash
 defaults write local.athulya.focuspill thoughtcrumbsURL "http://localhost:4000"

@@ -270,13 +270,51 @@ final class NotesController {
             .first { FileManager.default.fileExists(atPath: $0.path) }
     }
 
+    /// Today's notes packed into a link fragment (#pill=…). Browsers never send the fragment to the server.
+    static func handoffFragment(_ entries: [FocusLog.OutboxEntry]) -> String? {
+        guard !entries.isEmpty, let json = try? JSONEncoder().encode(entries) else { return nil }
+        let base64url = json.base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
+        return "pill=" + base64url
+    }
+
+    static func withFragment(_ url: URL, _ fragment: String?) -> URL {
+        guard let fragment, var parts = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return url }
+        parts.percentEncodedFragment = fragment
+        return parts.url ?? url
+    }
+
+    /// Opens the installed app's own window at `url`, through the browser that installed it.
+    /// Returns false when that browser can't be found, so the caller can fall back.
+    static func launchInstalledApp(_ app: URL, at url: URL) -> Bool {
+        guard let info = NSDictionary(contentsOf: app.appendingPathComponent("Contents/Info.plist")),
+              let appID = info["CrAppModeShortcutID"] as? String,
+              let browserID = info["CrBundleIdentifier"] as? String,
+              let browser = NSWorkspace.shared.urlForApplication(withBundleIdentifier: browserID),
+              let binary = Bundle(url: browser)?.executableURL else { return false }
+        let process = Process()
+        process.executableURL = binary
+        // A running browser forwards these to its open instance, which opens the app window at `url`.
+        process.arguments = ["--app-id=\(appID)", "--app-launch-url-for-shortcuts-menu-item=\(url.absoluteString)"]
+        do { try process.run() } catch { return false }
+        return true
+    }
+
     func openThoughtcrumbs() {
-        let url = Self.thoughtcrumbsURL
+        let fragment = Self.handoffFragment(model.log.thoughtcrumbsOutbox(at: model.now()))
+        let url = Self.withFragment(Self.thoughtcrumbsURL, fragment)
         close()
         // Prefer the installed offline app, so Thoughtcrumbs opens in its own window and works without internet.
         if let app = Self.installedApp {
-            NSWorkspace.shared.openApplication(at: app, configuration: NSWorkspace.OpenConfiguration())
-            return
+            if fragment == nil {
+                NSWorkspace.shared.openApplication(at: app, configuration: NSWorkspace.OpenConfiguration())
+                return
+            }
+            let info = NSDictionary(contentsOf: app.appendingPathComponent("Contents/Info.plist"))
+            let appURL = (info?["CrAppModeShortcutURL"] as? String).flatMap(URL.init(string:)) ?? Self.thoughtcrumbsURL
+            if Self.launchInstalledApp(app, at: Self.withFragment(appURL, fragment)) { return }
         }
         guard ["localhost", "127.0.0.1"].contains(url.host ?? "") else {
             NSWorkspace.shared.open(url)

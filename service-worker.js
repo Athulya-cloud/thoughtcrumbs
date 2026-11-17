@@ -1,4 +1,4 @@
-const CACHE_NAME = 'interstitial-journal-v9';
+const CACHE_NAME = 'interstitial-journal-v10';
 const APP_SHELL = [
   './',
   './index.html',
@@ -18,6 +18,7 @@ const APP_SHELL = [
   './src/days.js',
   './src/calendar.js',
   './src/graph.js',
+  './src/pill-import.js',
 ];
 
 self.addEventListener('install', (event) => {

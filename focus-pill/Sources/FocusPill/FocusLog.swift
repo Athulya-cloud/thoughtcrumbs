@@ -54,6 +54,7 @@ final class FocusLog {
         rollDay(date)
         ensureHeader(task, at: date)
         write("- \(clean(text))\n", at: date)
+        queueForThoughtcrumbs(task.isEmpty ? clean(text) : "\(clean(task)): \(clean(text))", at: date)
     }
 
     func done(_ text: String, task: String, minutes: Int, at date: Date) {
@@ -61,6 +62,8 @@ final class FocusLog {
         ensureHeader(task, at: date)
         let body = text.isEmpty ? "done" : clean(text)
         write("- ✓ \(body)  (\(minutes) min)\n", at: date)
+        let label = task.isEmpty ? body : (text.isEmpty ? clean(task) : "\(clean(task)): \(body)")
+        queueForThoughtcrumbs("✓ \(label) (\(minutes) min)", at: date)
     }
 
     func stopped(task: String, minutes: Int, at date: Date) {
@@ -83,6 +86,41 @@ final class FocusLog {
             try? "# Focus · \(dayKey(date))\n".write(to: u, atomically: true, encoding: .utf8)
         }
         return u
+    }
+
+    // MARK: Thoughtcrumbs outbox
+
+    /// Today's notes and finished sessions, handed to Thoughtcrumbs each time you open it.
+    /// Thoughtcrumbs skips ids it has already imported, so sending the whole day again is safe.
+    struct OutboxEntry: Codable, Equatable {
+        let id: String
+        let text: String
+        let createdAt: Double  // milliseconds since 1970, like Thoughtcrumbs entries
+    }
+
+    private struct Outbox: Codable {
+        var day: String
+        var entries: [OutboxEntry]
+    }
+
+    var outboxURL: URL { dir.appendingPathComponent(".thoughtcrumbs-outbox.json") }
+
+    func thoughtcrumbsOutbox(at date: Date = Date()) -> [OutboxEntry] {
+        guard let data = try? Data(contentsOf: outboxURL),
+              let box = try? JSONDecoder().decode(Outbox.self, from: data),
+              box.day == dayKey(date) else { return [] }
+        return box.entries
+    }
+
+    private func queueForThoughtcrumbs(_ text: String, at date: Date) {
+        guard !text.isEmpty else { return }
+        var entries = thoughtcrumbsOutbox(at: date)
+        entries.append(OutboxEntry(id: "pill-" + UUID().uuidString.lowercased(),
+                                   text: text,
+                                   createdAt: (date.timeIntervalSince1970 * 1000).rounded()))
+        let box = Outbox(day: dayKey(date), entries: Array(entries.suffix(400)))
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        do { try JSONEncoder().encode(box).write(to: outboxURL, options: .atomic) } catch { onWriteFailure?() }
     }
 
     // MARK: internals

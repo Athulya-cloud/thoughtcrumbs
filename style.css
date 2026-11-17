@@ -470,6 +470,7 @@ a { color: inherit; text-decoration: none; }
 .toast button { padding: 0.2rem 0.8rem; border-radius: 999px; background: var(--chip); color: var(--strong); font-weight: 500; }
 
 #persistence-warning { bottom: auto; top: 4rem; padding-right: 1.1rem; }
+#import-toast { padding-right: 1.1rem; }
 
 /* ---- small screens -------------------------------------------------------------- */
 

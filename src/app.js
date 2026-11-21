@@ -3,7 +3,10 @@ import { initReviewView } from './review.js';
 import { initThingsView } from './things-view.js';
 import { initPicker } from './picker.js';
 import { shouldNudge } from './nudge.js';
-import { readPillHash, importPillEntries, localSeenIds } from './pill-import.js';
+import {
+  readPillHash, importPillEntries, localSeenIds, fetchPillOutbox, isPillLinked, markPillLinked, endsASession,
+} from './pill-import.js';
+import { buildExport, exportFileName } from './export.js';
 
 const NUDGE_KEY = 'thoughtcrumbs-nudge';
 
@@ -79,35 +82,92 @@ async function main() {
     }
   });
 
-  // Focus Pill hands over today's notes in the link fragment (#pill=…).
-  async function pullFromPill() {
+  // Jotting never asks you to pick a topic first: it goes straight to today's capture line.
+  const jot = async () => {
+    window.focus();
+    await things.showHome();
+  };
+  const nudge = setupNudge(jot);
+
+  // Hash handoff and polling can overlap; run imports one at a time so neither loses
+  // the other's "already imported" ids (which keep deleted notes deleted).
+  let importQueue = Promise.resolve();
+  function importFromPill(entries, options) {
+    importQueue = importQueue.then(() => importNow(entries, options)).catch(() => {});
+    return importQueue;
+  }
+
+  async function importNow(entries, { redraw }) {
+    const added = await importPillEntries(store, entries, localSeenIds());
+    if (added.length === 0) return;
+    if (redraw) await things.refreshView();
+    if (endsASession(added)) {
+      nudge.ask('Session done. What’s next?');
+    } else {
+      const toast = document.querySelector('#import-toast');
+      toast.textContent = `Added ${added.length} note${added.length === 1 ? '' : 's'} from Focus Pill`;
+      toast.hidden = false;
+      clearTimeout(importNow.timer);
+      importNow.timer = setTimeout(() => { toast.hidden = true; }, 4000);
+    }
+  }
+
+  // Focus Pill hands over its notes in the link fragment (#pill=…) when it opens this app.
+  async function pullFromHash({ redraw }) {
     const entries = readPillHash(window.location.hash);
     if (!entries) return;
     history.replaceState(null, '', window.location.pathname + window.location.search);
-    const added = await importPillEntries(store, entries, localSeenIds());
-    if (added) {
-      const toast = document.querySelector('#import-toast');
-      toast.textContent = `Added ${added} note${added === 1 ? '' : 's'} from Focus Pill`;
-      toast.hidden = false;
-      setTimeout(() => { toast.hidden = true; }, 4000);
+    markPillLinked();
+    await importFromPill(entries, { redraw });
+  }
+
+  // While the app is open, it also pulls from a running pill on its own.
+  // Only once the pill has linked itself, so nobody else gets a local-network prompt.
+  const localCopy = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  let polling = false;
+  async function pollPill() {
+    if (polling || document.hidden || !(isPillLinked() || localCopy)) return;
+    polling = true;
+    try {
+      const entries = await fetchPillOutbox();
+      if (entries) {
+        markPillLinked();
+        await importFromPill(entries, { redraw: true });
+      }
+    } finally {
+      polling = false;
     }
   }
 
   window.addEventListener('hashchange', async () => {
     if (!window.location.hash.startsWith('#pill=')) return;
-    await pullFromPill();
+    await pullFromHash({ redraw: false });
     await show('things');
   });
+  window.addEventListener('focus', pollPill);
+  document.addEventListener('visibilitychange', pollPill);
+  setInterval(pollPill, 20 * 1000);
 
-  setupNudge(() => picker.open());
-  await pullFromPill();
+  document.querySelector('#export-button')?.addEventListener('click', async () => {
+    const data = buildExport(await store.getAllThings(), await store.getAllEntries());
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = exportFileName();
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  await pullFromHash({ redraw: false });
   await show('things');
+  pollPill();
   setupServiceWorker();
 }
 
-function setupNudge(openPicker) {
+function setupNudge(jot) {
   const toggle = document.querySelector('#nudge-toggle');
   const toast = document.querySelector('#nudge-toast');
+  const message = toast.querySelector('.nudge-message');
   let enabled = readNudgeSetting();
   let lastNudgeAt = Date.now();
 
@@ -116,14 +176,21 @@ function setupNudge(openPicker) {
     toggle.setAttribute('aria-pressed', String(enabled));
   }
 
+  function ask(text) {
+    lastNudgeAt = Date.now();
+    message.textContent = text;
+    toast.hidden = false;
+    clearTimeout(ask.timer);
+    ask.timer = setTimeout(() => { toast.hidden = true; }, 15000);
+  }
+
   function nudge() {
     lastNudgeAt = Date.now();
-    if ('Notification' in window && Notification.permission === 'granted') {
+    if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
       const note = new Notification('Anything on your mind?', { silent: true });
-      note.onclick = () => { window.focus(); openPicker(); note.close(); };
+      note.onclick = () => { jot(); note.close(); };
     } else {
-      toast.hidden = false;
-      setTimeout(() => { toast.hidden = true; }, 15000);
+      ask('Anything on your mind?');
     }
   }
 
@@ -139,7 +206,7 @@ function setupNudge(openPicker) {
 
   document.querySelector('#nudge-open').addEventListener('click', () => {
     toast.hidden = true;
-    openPicker();
+    jot();
   });
 
   setInterval(() => {
@@ -147,7 +214,9 @@ function setupNudge(openPicker) {
   }, 60 * 1000);
 
   paint();
+  return { ask };
 }
+
 function setupServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
 

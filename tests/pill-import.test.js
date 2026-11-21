@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { readPillHash, importPillEntries, localSeenIds } from '../src/pill-import.js';
+import { readPillHash, importPillEntries, localSeenIds, fetchPillOutbox, endsASession, isPillLinked, markPillLinked } from '../src/pill-import.js';
 
 const encode = (value) => '#pill=' + Buffer.from(JSON.stringify(value), 'utf8').toString('base64url');
 
@@ -49,8 +49,8 @@ describe('importPillEntries', () => {
       { id: 'pill-a', text: 'one', createdAt: 1 },
       { id: 'pill-b', text: 'two', createdAt: 2 },
     ]));
-    expect(await importPillEntries(store, entries, localSeenIds(storage))).toBe(2);
-    expect(await importPillEntries(store, entries, localSeenIds(storage))).toBe(0);
+    expect(await importPillEntries(store, entries, localSeenIds(storage))).toHaveLength(2);
+    expect(await importPillEntries(store, entries, localSeenIds(storage))).toHaveLength(0);
     expect(store.entries.size).toBe(2);
   });
 
@@ -60,14 +60,47 @@ describe('importPillEntries', () => {
     const entries = readPillHash(encode([{ id: 'pill-a', text: 'one', createdAt: 1 }]));
     await importPillEntries(store, entries, localSeenIds(storage));
     store.entries.delete('pill-a');
-    expect(await importPillEntries(store, entries, localSeenIds(storage))).toBe(0);
+    expect(await importPillEntries(store, entries, localSeenIds(storage))).toHaveLength(0);
     expect(store.entries.size).toBe(0);
   });
 
   it('never overwrites an entry that already exists', async () => {
     const store = memoryStore([{ id: 'pill-a', text: 'edited here', createdAt: 1, thingId: 't1' }]);
     const entries = readPillHash(encode([{ id: 'pill-a', text: 'original', createdAt: 1 }]));
-    expect(await importPillEntries(store, entries, localSeenIds(memoryStorage()))).toBe(0);
+    expect(await importPillEntries(store, entries, localSeenIds(memoryStorage()))).toHaveLength(0);
     expect(store.entries.get('pill-a').text).toBe('edited here');
+  });
+});
+
+describe('fetchPillOutbox', () => {
+  const reply = (body, ok = true) => async () => ({ ok, json: async () => body });
+
+  it('returns cleaned entries from the running pill', async () => {
+    const list = await fetchPillOutbox(reply([
+      { id: 'pill-a', text: ' Started: jog ', createdAt: 5 },
+      { id: 'nope', text: 'bad id', createdAt: 5 },
+    ]));
+    expect(list).toEqual([{ id: 'pill-a', text: 'Started: jog', createdAt: 5, thingId: null }]);
+  });
+
+  it('returns null when the pill is not running or errors', async () => {
+    expect(await fetchPillOutbox(async () => { throw new TypeError('Failed to fetch'); })).toBeNull();
+    expect(await fetchPillOutbox(reply([], false))).toBeNull();
+  });
+});
+
+describe('pill link and sessions', () => {
+  it('remembers that the pill opened this app', () => {
+    const storage = memoryStorage();
+    expect(isPillLinked(storage)).toBe(false);
+    markPillLinked(storage);
+    expect(isPillLinked(storage)).toBe(true);
+  });
+
+  it('spots a finished session', () => {
+    const now = 10_000_000;
+    expect(endsASession([{ text: 'Started: jog', createdAt: now }], now)).toBe(false);
+    expect(endsASession([{ text: '✓ jog (25 min)', createdAt: now - 60_000 }], now)).toBe(true);
+    expect(endsASession([{ text: '✓ jog (25 min)', createdAt: now - 3_600_000 }], now)).toBe(false);
   });
 });

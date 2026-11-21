@@ -44,7 +44,12 @@
 
     <aside id="sidebar" class="sidebar" aria-label="Calendar and links">
       <section id="calendar" class="calendar"></section>
-      <section id="graph" class="graph"></section>
+      <button id="graph-toggle" class="action side-toggle" type="button" aria-controls="graph" aria-expanded="false" hidden>Show links</button>
+      <section id="graph" class="graph" hidden></section>
+      <section class="side-tools">
+        <button id="export-button" class="action strong" type="button">Export everything</button>
+        <p class="side-note">Your notes live only in this browser. Keep a copy somewhere safe.</p>
+      </section>
     </aside>
   </div>
 
@@ -60,7 +65,7 @@
   </div>
 
   <div id="nudge-toast" class="toast" hidden>
-    Anything on your mind? <button id="nudge-open" type="button">Jot</button>
+    <span class="nudge-message">Anything on your mind?</span> <button id="nudge-open" type="button">Jot</button>
   </div>
 
   <div id="undo-toast" class="toast" hidden>

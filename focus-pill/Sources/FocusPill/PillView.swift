@@ -23,13 +23,17 @@ struct PillView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            Capsule().fill(Palette.bg)
-            Capsule().strokeBorder(Palette.border, lineWidth: 1)
-            row
-                .padding(.leading, 18)
-                .padding(.trailing, 12)
-                .frame(maxHeight: .infinity)
-            progressLine
+            Capsule().fill(Palette.bg).allowsHitTesting(false)
+            Capsule().strokeBorder(Palette.border, lineWidth: 1).allowsHitTesting(false)
+            WindowDragArea()
+            HStack(spacing: 4) {
+                row
+                grip
+            }
+            .padding(.leading, 18)
+            .padding(.trailing, 6)
+            .frame(maxHeight: .infinity)
+            progressLine.allowsHitTesting(false)
         }
         .frame(width: Self.size.width, height: Self.size.height)
         .contentShape(Capsule())
@@ -100,11 +104,13 @@ struct PillView: View {
                 .font(Palette.clock)
                 .foregroundStyle(m.paused ? Palette.dim : Palette.fg)
                 .fixedSize()
+                .allowsHitTesting(false)
             Text(m.paused ? "Paused" : label)
                 .font(Palette.body)
                 .foregroundStyle(Palette.dim)
                 .lineLimit(1)
                 .truncationMode(.tail)
+                .allowsHitTesting(false)
             Spacer(minLength: 4)
             if m.hover {
                 HStack(spacing: 2) {
@@ -126,6 +132,7 @@ struct PillView: View {
                 .font(Palette.clock)
                 .foregroundStyle(Palette.over)
                 .fixedSize()
+                .allowsHitTesting(false)
             field("What got done?", text: $m.input, submit: m.submitReview, cancel: m.skipReview)
             if m.hover {
                 HStack(spacing: 2) {
@@ -141,6 +148,25 @@ struct PillView: View {
     }
 
     // MARK: pieces
+
+    /// Drag here (or any empty part of the pill) to move it. Where you leave it is remembered.
+    private var grip: some View {
+        ZStack {
+            WindowDragArea()
+            VStack(spacing: 3) {
+                ForEach(0..<3, id: \.self) { _ in
+                    HStack(spacing: 3) {
+                        Circle().frame(width: 2.5, height: 2.5)
+                        Circle().frame(width: 2.5, height: 2.5)
+                    }
+                }
+            }
+            .foregroundStyle(m.hover ? Palette.dim : Palette.faint)
+            .allowsHitTesting(false)
+        }
+        .frame(width: 16, height: 30)
+        .help("Drag to move")
+    }
 
     @ViewBuilder private var progressLine: some View {
         if m.isRunning {
@@ -206,7 +232,7 @@ struct PillView: View {
     }
 
     private func hint(_ s: String) -> some View {
-        Text(s).font(Palette.hint).foregroundStyle(Palette.faint).fixedSize()
+        Text(s).font(Palette.hint).foregroundStyle(Palette.faint).fixedSize().allowsHitTesting(false)
     }
 
     private func iconButton(_ symbol: String, help: String, action: @escaping () -> Void) -> some View {
@@ -240,6 +266,17 @@ struct PillView: View {
         Divider()
         Button("Quit Focus Pill") { NSApp.terminate(nil) }
     }
+}
+
+/// An AppKit view that moves the window when dragged, even while Focus Pill isn't the active app.
+private struct WindowDragArea: NSViewRepresentable {
+    final class DragView: NSView {
+        override var mouseDownCanMoveWindow: Bool { true }
+        override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+        override func mouseDown(with event: NSEvent) { window?.performDrag(with: event) }
+    }
+    func makeNSView(context: Context) -> DragView { DragView() }
+    func updateNSView(_ nsView: DragView, context: Context) {}
 }
 
 private struct HoverButtonStyle: ButtonStyle {

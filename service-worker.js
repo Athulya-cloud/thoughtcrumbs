@@ -1,4 +1,4 @@
-const CACHE_NAME = 'interstitial-journal-v10';
+const CACHE_NAME = 'interstitial-journal-v11';
 const APP_SHELL = [
   './',
   './index.html',
@@ -19,6 +19,8 @@ const APP_SHELL = [
   './src/calendar.js',
   './src/graph.js',
   './src/pill-import.js',
+  './src/recap.js',
+  './src/export.js',
 ];
 
 self.addEventListener('install', (event) => {
@@ -40,6 +42,8 @@ self.addEventListener('message', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Only the app's own files come from the cache; Focus Pill's local address goes straight through.
+  if (new URL(event.request.url).origin !== self.location.origin) return;
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request))
   );

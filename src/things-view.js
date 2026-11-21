@@ -9,8 +9,21 @@ import {
 } from './days.js';
 import { renderCalendar } from './calendar.js';
 import { renderGraph } from './graph.js';
+import { daySummary, leftOffAt, hoursAgo } from './recap.js';
 
 const SWEEP_KEY = 'thoughtcrumbs-last-sweep';
+const GRAPH_KEY = 'thoughtcrumbs-show-links';
+
+// Interstitial journaling asks the same small questions each time; a tap starts the line.
+const PROMPTS = ['Just did', 'Next I’ll', 'Stuck on'];
+
+function readShowGraph() {
+  try { return localStorage.getItem(GRAPH_KEY) === 'on'; } catch { return false; }
+}
+
+function writeShowGraph(on) {
+  try { localStorage.setItem(GRAPH_KEY, on ? 'on' : 'off'); } catch { /* storage unavailable */ }
+}
 
 function readSweepAt() {
   try {
@@ -64,6 +77,9 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
   let month = null;
   let showAll = false;
   let sweep = null;
+  let showGraph = readShowGraph();
+  let lastGraph = null;
+  const graphToggle = sidebar?.querySelector('#graph-toggle');
 
   async function load() {
     [things, entries] = await Promise.all([store.getAllThings(), store.getAllEntries()]);
@@ -107,16 +123,30 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
       input.style.height = 'auto';
       input.style.height = `${input.scrollHeight}px`;
     };
-    input.addEventListener('input', fit);
+    const prompts = el('div', 'prompts');
+    const paintPrompts = () => { prompts.hidden = input.value.trim() !== ''; };
+    for (const label of PROMPTS) {
+      prompts.appendChild(textButton(`${label}…`, 'prompt', () => {
+        input.value = `${label}: `;
+        fit();
+        paintPrompts();
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+      }));
+    }
+    input.addEventListener('input', () => { fit(); paintPrompts(); });
     input.addEventListener('keydown', async (event) => {
       if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
       event.preventDefault();
       const text = input.value;
       input.value = '';
       fit();
+      paintPrompts();
       if (text.trim()) await onSave(text);
     });
-    li.append(time, input);
+    const body = el('div', 'capture-body');
+    body.append(input, prompts);
+    li.append(time, body);
     return { li, input };
   }
 
@@ -191,12 +221,45 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
       },
     });
     paintCalendar();
-    if (graph) {
+    lastGraph = graph;
+    paintGraph();
+  }
+
+  // The links graph is extra detail, so it stays folded away until you ask for it.
+  function paintGraph() {
+    if (!graphEl) return;
+    if (graphToggle) {
+      graphToggle.hidden = !lastGraph;
+      graphToggle.textContent = showGraph ? 'Hide links' : 'Show links';
+      graphToggle.setAttribute('aria-expanded', String(showGraph));
+    }
+    if (lastGraph && showGraph) {
       graphEl.hidden = false;
-      renderGraph(graphEl, graph);
+      renderGraph(graphEl, lastGraph);
     } else {
       graphEl.hidden = true;
     }
+  }
+
+  graphToggle?.addEventListener('click', () => {
+    showGraph = !showGraph;
+    writeShowGraph(showGraph);
+    paintGraph();
+  });
+
+  // After a long gap, today's page opens with the last thing you wrote.
+  function leftOffLine(now) {
+    const last = leftOffAt(entries, now);
+    if (!last) return null;
+    const box = el('section', 'left-off');
+    const label = el('p', 'left-off-label');
+    label.append('Where you left off', dot(), muted(hoursAgo(last.createdAt, now) ?? relativeDay(last.createdAt, now)));
+    const text = el('p', 'left-off-text');
+    text.append(el('span', 'note-text', last.text));
+    const thing = last.thingId ? thingById(last.thingId) : null;
+    if (thing) text.append(' ', linkTo(thing.title, 'chip', () => openThing(thing.id)));
+    box.append(label, text);
+    return box;
   }
 
   // ---- daily note -------------------------------------------------------------
@@ -319,9 +382,12 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
     const subtitle = [muted(longDate(day))];
     if (isToday) subtitle.push(dot(), muted('Today'));
     else subtitle.push(dot(), linkTo('Back to today', 'link', () => openDay(today())));
+    for (const part of daySummary(entries, day)) subtitle.push(dot(), muted(part));
     page.appendChild(header(weekday(day), subtitle, [steps]));
 
     if (isToday) {
+      const leftOff = leftOffLine(now);
+      if (leftOff) page.appendChild(leftOff);
       page.appendChild(thingsBox(now));
       const card = sweepBox(now);
       if (card) page.appendChild(card);
@@ -517,9 +583,20 @@ export async function initThingsView(store, root, { sidebar, reveal = () => {} }
     for (const node of page.querySelectorAll('.capture .note-time')) node.textContent = clock(Date.now());
   }, 15000);
 
+  // New notes arrived from elsewhere: redraw, unless you're in the middle of typing one.
+  async function refreshView() {
+    await load();
+    const active = document.activeElement;
+    const typing = active && ['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName);
+    if (typing && (active.tagName === 'SELECT' || active.value.trim())) return;
+    if (!root.hidden) rerender(active?.classList?.contains('capture-input') ?? false);
+  }
+
   await load();
   return {
     refresh: load,
+    refreshView,
+    getEntries: () => entries,
     showHome: async () => { await load(); renderDay(today()); },
     isInside: () => !(view.kind === 'day' && view.day === today()),
     openThing: async (id) => { await load(); renderThing(id); },

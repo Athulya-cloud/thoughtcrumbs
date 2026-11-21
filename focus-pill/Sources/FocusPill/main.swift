@@ -65,6 +65,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let hotKeys = HotKeys()
     private(set) var model: PillModel!
     private var notes: NotesController!
+    private var bridge: LocalBridge?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Hidden pill = no visible windows; without this macOS quietly kills the app.
@@ -110,6 +111,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Snapshotter(model: model, view: host, notes: notes, dir: URL(fileURLWithPath: dir)).run()
             return
         }
+
+        let log = model.log
+        let bridge = LocalBridge(
+            outbox: { [weak self] in log.thoughtcrumbsOutbox(at: self?.model.now() ?? Date()) },
+            allowedOrigins: {
+                var origins: Set<String> = ["https://athulya-cloud.github.io"]
+                let url = NotesController.thoughtcrumbsURL
+                if let scheme = url.scheme, let host = url.host {
+                    origins.insert(url.port.map { "\(scheme)://\(host):\($0)" } ?? "\(scheme)://\(host)")
+                }
+                return origins
+            })
+        bridge.start()
+        self.bridge = bridge
 
         let main = hotKeys.register(id: 1, keyCode: UInt32(kVK_Space), modifiers: UInt32(controlKey | optionKey)) { [weak self] in
             MainActor.assumeIsolated { self?.model.hotKey() }

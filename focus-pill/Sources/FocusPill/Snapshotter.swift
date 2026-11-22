@@ -27,11 +27,33 @@ struct Snapshotter {
             ("12-idle-count", { m in m.now = Date.init; m.doneToday = 3 }),
             ("13-idle-hover", { m in m.hover = true }),
         ]
-        step(stages, 0)
+        step(ProcessInfo.processInfo.environment["FOCUS_PILL_DEMO"] == nil ? stages : demoStages, 0)
+    }
+
+    /// Frames for the README demo GIF (FOCUS_PILL_DEMO=1): pick a task, focus, log what got done.
+    private var demoStages: [(String, (PillModel) -> Void)] {
+        let task = "Portfolio about page"
+        let note = "first draft done"
+        var list: [(String, (PillModel) -> Void)] = [("d00-idle", { m in m.doneToday = 0; m.input = "" })]
+        for (i, n) in [4, 9, 15, task.count].enumerated() {
+            list.append(("d0\(i + 1)-typing", { m in m.input = String(task.prefix(n)) }))
+        }
+        for (i, left) in [1500.0, 1499, 1112, 41].enumerated() {
+            list.append(("d1\(i)-focus", { m in m.input = ""; m.task = task; m.phase = .focus; m.total = 1500; m.remaining = left }))
+        }
+        list.append(("d20-review", { m in m.phase = .review; m.overtime = 3; m.hover = true; m.input = "" }))
+        for (i, n) in [5, 11, note.count].enumerated() {
+            list.append(("d2\(i + 1)-review-typing", { m in m.input = String(note.prefix(n)) }))
+        }
+        list.append(("d30-break", { m in m.hover = false; m.input = ""; m.doneToday = 1; m.phase = .rest; m.total = 300; m.remaining = 299 }))
+        return list
     }
 
     private func step(_ stages: [(String, (PillModel) -> Void)], _ i: Int) {
-        guard i < stages.count else { notesShot(); return }
+        guard i < stages.count else {
+            if ProcessInfo.processInfo.environment["FOCUS_PILL_DEMO"] != nil { NSApp.terminate(nil) } else { notesShot() }
+            return
+        }
         stages[i].1(model)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
             capture(stages[i].0)

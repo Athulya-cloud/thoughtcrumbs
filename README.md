@@ -1,3 +1,5 @@
+<img src="icons/icon-192.png" alt="Thoughtcrumbs logo" width="72">
+
 # Thoughtcrumbs
 
 A journal for short notes during the day. Each note gets the time you wrote it.

@@ -1,10 +1,13 @@
-const CACHE_NAME = 'interstitial-journal-v11';
+const CACHE_NAME = 'interstitial-journal-v12';
 const APP_SHELL = [
   './',
   './index.html',
   './style.css',
   './manifest.webmanifest',
-  './icon.svg',
+  './icons/favicon-32.png',
+  './icons/mark-64.png',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
   './src/app.js',
   './src/db.js',
   './src/filters.js',

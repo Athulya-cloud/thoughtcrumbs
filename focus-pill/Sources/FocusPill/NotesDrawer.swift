@@ -66,6 +66,8 @@ struct NotesView: View {
     /// Newest sessions first; the full day is one click away in the log.
     static let maxBlocks = 5
     static let maxItems = 6
+    /// The logo, copied into the app bundle by make_app.sh. Missing under `swift run`, so it is optional.
+    static let mark: NSImage? = Bundle.main.url(forResource: "mark", withExtension: "png").flatMap(NSImage.init(contentsOf:))
 
     @ObservedObject var notes: NotesModel
     var openThoughtcrumbs: () -> Void
@@ -73,7 +75,10 @@ struct NotesView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack {
+            HStack(spacing: 7) {
+                if let mark = Self.mark {
+                    Image(nsImage: mark).resizable().frame(width: 18, height: 18).accessibilityHidden(true)
+                }
                 Text("Today").font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.fg)
                 Spacer()
                 if notes.doneCount > 0 {

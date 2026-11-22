@@ -4,7 +4,7 @@
 
 A journal for short notes during the day. Each note gets the time you wrote it.
 
-<p align="center"><img src="assets/demo.gif" alt="Thoughtcrumbs in use" width="640"></p>
+<p align="center"><img src="assets/demo.gif" alt="Focus Pill and Thoughtcrumbs in use" width="800"></p>
 
 Use it here: https://athulya-cloud.github.io/thoughtcrumbs/
 
